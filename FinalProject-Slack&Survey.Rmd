@@ -1,0 +1,195 @@
+---
+title: "FinalProject-Slack & Class Survey Data"
+author: "Jiaqi, Joanna & Inga"
+date: "2018/05/06"
+output: html_notebook
+---
+
+# FinalProject-Slack & Class Survey Data
+## By Jiaqi, Joanna & Inga
+
+### 1. DATA
+
+The data used in this analysis is from two sources: Slack and Google Forms survey. All data was obtained with the help of LADS instructor Alyssa Wise who also anonymized user information. All participants in the Slack workspace and in the Google Survey were NYU students registered for the Spring 2018 Learning Analytics course
+
+Slack data was in the form of json files containing information relating to class discussion and interactions occurring under the #techhelp, #wk5discuss2018, #wk6discuss2018, and wk9discuss2018 channels in the LADS-EDU workspace. This information included a user id, timestamp for when comments were added by the user to the channel, indicator of edits made to the original message, indicator if a reaction was made by another user to a post, id of the reacting user, and a count of the reactions made on the post. The files also included the post (text) made by a user and the “type” as well as information relating to attachments (such as timestamp, attachment title, attachment link, attachment url, and attachment thumbnail information). Variables were recorded as factor and numeric. 
+
+The Google Forms Survey was a single CSV file. Questions for the survey were determined by the students in class at the beginning of the semester. The data included a matching user id to the user id in Slack as well as the week the survey was being completed for, what work the surveyor found most challenging for the week being recorded, and how clear, informative, and interesting the surveyor found readings 1, 2, and 3 (if applicable). In addition, the surveyor reported on their confidence in R work, what affected their confidence, and how they engaged with LA outside of the classroom. The final three questions related to time. This included when the surveyor started their assignments, how they distributed their work, and how the work was organized. All variables were coded as factors. 
+
+```{r}
+
+```
+
+### 2. QUESTION
+
+Do student answers about work start time and work distribution in the Google Survey reflect their post activity in Slack?
+
+### 3. APPROACH
+
+After viewing the data from Slack and from the Survey, we picked the above question based on the amount of data and variance of data we found. Both sets of data contained timestamps which could be used for comparison. We can also map when activity occurred on the Slack channels and how the activity compared to the self-reported results in the survey. Most of the analysis would be descriptive. We determined that best method for visualizing and comparing the data would be through histograms/bar graphs since there is not enough variance in the survey answers to create unique clusters (also based on our past class assignments. Based on the graphs, we can see a change in student behavior before, around, and after the midterm season. 
+ 
+
+
+### 4. PROCESS, RESULTS & INTEPRETATION]
+
+####(1)Data Cleaning
+In order to properly view the data, we needed to convert both data sets into R data frames. Since we were working with two different types of data, there were two different lines of code we ran. 
+
+#####Slack(JSON) 
+Using the RJSON package, we converted the .json file for each day into a list. This list was then converted into a dataframe. The final step included combining all of the individual data frames into one dataframe for the week. 
+```{r}
+#Example Code: 
+
+W5D1<-fromJSON(file="wk5discuss2018/2018-01-23.json")
+W5D1DF<-do.call("rbind.fill", lapply(W5D1, as.data.frame))
+Week5<-rbind.fill(W5D1DF,W5D2DF,W5D3DF,W5D4DF)
+
+```
+However, we encountered a problem with W6D3. Due to the nesting of the data, the list did not convert into a dataframe using the lines of code above. The error we encountered indicated different number of rows (1, 0). After much searching, we were able to find a code online on the Stack Overflow website (regarding a different topic but addressing this issue) which helped us finally put W6D3 into a dataframe. 
+
+```{r}
+#W6D3 Code:
+
+W6D3DF <- ldply(W6D3, function(x) {
+   x[sapply(x, is.null)] <- NA
+   unlisted_x <- unlist(x)
+  d <- as.data.frame(unlisted_x)
+  d <- as.data.frame(t(d), check.names=F)
+  colnames(d) <- names(unlisted_x)
+  return(d)
+})
+
+```
+Using W6D3, the function first removes any null elements and replaces them with NA. Next, the data is converted into a character vector. The vector is then converted into a dataframe and rows/columns are created for each element. After that, the rows and columns are transposed. Column names are then obtained from the original vector file. The final command “stacks” it all together. (refer to https://stackoverflow.com/questions/38514490/jsonlites-fromjson-is-returning-a-list-of-2-lists-instead-of-a-df) 
+
+Once the final dataframe was created, the data was inspected and we determined which columns (variables) we did not need in our analysis. In some of the channels, the data included when students joined the Slack channel. These rows were also dropped from the dataframe. 
+
+```{r}
+
+#Example Code: 
+
+Week5Clean<-select(Week5, -(attachments.title:attachments.id),-unread_count, -(reactions.counts:root.ts), -(old_name-inviter))
+
+Week5Clean <- Week5Clean[-c(1:22),]
+
+```
+Since we were interested in when students were making posts and replies, the time tamps in the dataframe needed to be converted. The following lines were used for each week:
+
+```{r}
+#Example Codes: 
+Week5Clean$ts<-as.numeric(levels(Week5Clean$ts))[Week5Clean$ts]
+Week5Clean$edited.ts<-as.numeric(levels(Week5Clean$edited.ts))[Week5Clean$edited.ts]
+Week5Clean$thread_ts<-as.numeric(levels(Week5Clean$thread_ts))[Week5Clean$thread_ts]
+# and 
+Week5Clean<-mutate(Week5Clean, timedate=as.POSIXct(ts, origin="1970-01-01"))
+Week5Clean<-mutate(Week5Clean, edited.timedate=as.POSIXct(edited.ts, origin="1970-01-01"))
+Week5Clean<-mutate(Week5Clean, thread.timedate=as.POSIXct(thread_ts, origin="1970-01-01"))
+```
+Finally, the dataframes for the weeks were checked for duplicate posts. All duplicates were removed for the final dataframe. 
+```{r}
+#Example Code: 
+duplicated(Week5Clean)
+Week5Clean<-Week5Clean[!duplicated(Week5Clean[,c(1,2,5)]),]
+
+```
+
+#####Google Survey(CSV)
+
+The CSV was simpler to prepare. First, the CSV was converted to a easy-to-read format using the following: 
+
+ReadingData1<-read.csv("LADS-EDU Weekly Survey 2018 Responses Coded.csv")
+
+Since we were interested in looking at survey questions about time, certain variables were dropped from the dataframe. 
+
+```{r}
+#Code: 
+
+ReadingData_edit<-(select(ReadingData1, -What.did.you.find.most.challenging.about.the.work.you.did.for.class.this.week.:-What.sources.of.information.about.analytics.did.you.interact.with.this.week..other.than.class.readings...assignments....if.applicable.))
+
+#With the remaining variables, the column names were renamed for convenience. 
+
+#Example Code:
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="What.week.are.you.entering.data.for."] <- "Week"
+
+#In order to make it easier to compare when students were submitting posts and the survey, the timestamp in the Survey data frame was changed to match the time structure in the Slack dataframes. 
+
+#Example Code: 
+
+ReadingData_edit$Timestamp<- as.POSIXct(ReadingData_edit$Timestamp,format="%m/%d/%Y%H:%M:%S")
+
+#Unlike in the Slack data were information was being presented by day and needed to be combined, the survey data presented all the data and needed to be separated. We created three subsets of the data, for weeks 5, 6, and 9. 
+
+#Example Code:
+
+ReadingData_Week5 <- ReadingData_edit[ which(ReadingData_edit$Week=="Wk 5 - Predictive Modelling 1"),] 
+
+```
+
+####(2)Data Analysis
+
+To begin, we wanted to see when messages were being posted to Slack by the students each week. 
+
+
+```{r}
+#Example Code:
+
+ggplot(data=Week5Clean, aes(Week5Clean$timedate)) + geom_histogram(bins="10", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count")
+
+```
+Next, we compared student answers on time (“start time”, “work organization” and “work distribution”) to see how they self reported. 
+
+```{r}
+#Example Code: *note: originally done as a histogram for the presentation but was changed to a scatterplot as it was easier to interpret)
+
+ggplot(ReadingData_Week9, aes(ReadingData_Week9$`Start Time`, ReadingData_Week9$`Work Distribution`))+ geom_point() + stat_sum(aes(group = 1))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+Based on student answers, we also looked at what they found challenging for the week to see if it there was a correlation to how students distributed work and when they started. 
+
+```{r}
+#Example Code: 
+
+ReadingData_3weeks <- rbind.fill(ReadingData_Week5, ReadingData_Week6, ReadingData_Week9)
+
+ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$`Work Distribution`,ReadingData_3weeks$`Work Challenge`))+ geom_point() + stat_sum(aes(group = 1))
+
+```
+We also combined the post time from the Slack posts to the survey data to see if there was a correlation in time posted and the challenges the students faced. 
+
+```{r}
+#Example Code:
+
+merge(ReadingData_Week9, Week9Clean[, c("user", "timedate")], by="user", all = TRUE)
+
+ReadingData_Week9$slacktimedate <- Week9Clean$timedate[match(ReadingData_Week9$user, Week9Clean$user)]
+
+g= ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$slacktimedate,ReadingData_3weeks$`Work Challenge`))+ geom_point() 
+g = g + scale_x_datetime(name = "Date", 
+                         breaks = date_breaks("2 days"),
+                         labels = date_format(format = "%b %d"),
+                         limits = c(as.POSIXct("2018-02-18 00:00:00"), as.POSIXct("2018-03-25                         00:00:00")),
+                         expand = c(0,0))
+g = g + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+```
+
+```{r}
+
+```
+
+### 5. CONCLUSION: 
+Based on the above data analysis process we can see that the answer to our initial question “Do student answers about work start time and work distribution in the Google Survey reflect their post activity in Slack?” could be “Yes” and “No”.
+
+Yes:
+1)The histograms/scatter plots show that most students answered survey questions honestly (they were aware of their actions and behavior) and they 1)Start late in the week across 2 to 3 days. 2) Complete tasks one at a time across 2 to 3 days. 3)Complete tasks one at a time late in the week（the camparison chart can be found in the presentation). It seems that student answers in the Google Survey partially reflect their post activity in Slack.
+2)We found that the weekly pattern of the histograms aligns with the progress of the class. We have observed declining amount of slack responses after week 6 (midterm week).
+
+No:
+1)Since our data sets is relatively tiny, the result/analysis may not be so accurate. 
+2)Tailored questions: Another possible alternative explanation we have observed is that the analysis could help design thoughtful survey questions. For example, since most students start late in week and many of them didn’t complete the tasks until the last day before class, it could be useful if we ask “How long time do you spend on your reading/R work” instead of “How did you distribute your work for this week?” Students can also asked what specific part of contributing to the Slack conversation was challenging for them. 
+
+
+### 6. REFLECTION
+When analyzing the data, we encountered difficulty with the W6D3 data. Since we did not have much data to use, it was important for us to have it working unless we wanted to change our question or ask for another week’s data. After researching online, we were able to incorporate W6D3 into the data frame.
+
+The project has provided us an opportunity to analyze the trends of student performance and behavior with Slack and Google surveys. Most students eventually spent less time on finishing the assignment which shows potential improvement of their knowledge base. We would like to collect more data over time such as Slack “tech help”  and each individual’s “R assignment submission time” to keep analyzing and eventually improve the workflow of learning and understanding of R. Some students found understanding the reading concepts as challenging. It would be interesting to see if the discussion activity would change if future readings were changed. 
