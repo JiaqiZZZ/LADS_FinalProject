@@ -9,8 +9,8 @@ output: html_notebook
 ## By Jiaqi, Joanna & Inga
 
 Link to Presentation: https://docs.google.com/presentation/d/1Pa2ugRuNYZlN-rgOLC1A-V6bMP9nyoKSN2FTEfMXARA/edit#slide=id.g35f391192_00
-Link to Data Sets: https://drive.google.com/drive/folders/1Wd9zIfgW6_h2sEldhVVA3y7A33LO8RBl
-Link to Paper: https://docs.google.com/presentation/d/1Pa2ugRuNYZlN-rgOLC1A-V6bMP9nyoKSN2FTEfMXARA/edit
+<br/>Link to Data Sets: https://drive.google.com/drive/folders/1Wd9zIfgW6_h2sEldhVVA3y7A33LO8RBl
+<br/>Link to Paper: https://docs.google.com/presentation/d/1Pa2ugRuNYZlN-rgOLC1A-V6bMP9nyoKSN2FTEfMXARA/edit
 
 ### 1. DATA
 
