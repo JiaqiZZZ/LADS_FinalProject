@@ -1,0 +1,505 @@
+---
+title: "FinalProject-Slack & Class Survey Data"
+author: "Jiaqi, Joanna & Inga"
+date: "2018/05/06"
+output:
+  html_document:
+    df_print: paged
+---
+
+# FinalProject-Slack & Class Survey Data
+## By Jiaqi, Joanna & Inga
+
+Link to Presentation: https://docs.google.com/presentation/d/1Pa2ugRuNYZlN-rgOLC1A-V6bMP9nyoKSN2FTEfMXARA/edit#slide=id.g35f391192_00
+<br/>Link to Data Sets: https://drive.google.com/drive/folders/1Wd9zIfgW6_h2sEldhVVA3y7A33LO8RBl
+<br/>Link to Paper（including Anlysisi & Graphs/Tables): https://docs.google.com/presentation/d/1Pa2ugRuNYZlN-rgOLC1A-V6bMP9nyoKSN2FTEfMXARA/edit
+
+
+### 1. DATA
+
+The data used in this analysis is from two sources: Slack and Google Forms survey. All data was obtained with the help of LADS instructor Alyssa Wise who also anonymized user information. All participants in the Slack workspace and in the Google Survey were NYU students registered for the Spring 2018 Learning Analytics course
+
+Slack data was in the form of json files containing information relating to class discussion and interactions occurring under the #techhelp, #wk5discuss2018, #wk6discuss2018, and wk9discuss2018 channels in the LADS-EDU workspace. This information included a user id, timestamp for when comments were added by the user to the channel, indicator of edits made to the original message, indicator if a reaction was made by another user to a post, id of the reacting user, and a count of the reactions made on the post. The files also included the post (text) made by a user and the “type” as well as information relating to attachments (such as timestamp, attachment title, attachment link, attachment url, and attachment thumbnail information). Variables were recorded as factor and numeric. 
+
+The Google Forms Survey was a single CSV file. Questions for the survey were determined by the students in class at the beginning of the semester. The data included a matching user id to the user id in Slack as well as the week the survey was being completed for, what work the surveyor found most challenging for the week being recorded, and how clear, informative, and interesting the surveyor found readings 1, 2, and 3 (if applicable). In addition, the surveyor reported on their confidence in R work, what affected their confidence, and how they engaged with LA outside of the classroom. The final three questions related to time. This included when the surveyor started their assignments, how they distributed their work, and how the work was organized. All variables were coded as factors. 
+
+### 2. QUESTION
+
+Do student answers about work start time and work distribution in the Google Survey reflect their post activity in Slack?
+
+### 3. APPROACH
+
+After viewing the data from Slack and from the Survey, we picked the above question based on the amount of data and variance of data we found. Both sets of data contained timestamps which could be used for comparison. We can also map when activity occurred on the Slack channels and how the activity compared to the self-reported results in the survey. Most of the analysis would be descriptive. We determined that best method for visualizing and comparing the data would be through histograms/bar graphs since there is not enough variance in the survey answers to create unique clusters (also based on our past class assignments. Based on the graphs, we can see a change in student behavior before, around, and after the midterm season. 
+
+
+Length = 1 paragraph.
+
+### 4. PROCESS, RESULTS & INTEPRETATION
+####(1)Data Cleaning
+In order to properly view the data, we needed to convert both data sets into R data frames. Since we were working with two different types of data, there were two different lines of code we ran. 
+
+#####Slack(JSON) 
+Using the RJSON package, we converted the .json file for each day into a list. This list was then converted into a dataframe. The final step included combining all of the individual data frames into one dataframe for the week. 
+```
+Example Code: 
+W5D1<-fromJSON(file="wk5discuss2018/2018-01-23.json")
+W5D1DF<-do.call("rbind.fill", lapply(W5D1, as.data.frame))
+Week5<-rbind.fill(W5D1DF,W5D2DF,W5D3DF,W5D4DF)
+```
+```{r}
+#Load packages
+library(rjson)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(scales)
+library(ggplot2)
+
+###WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 WEEK5 5 WEEK5 WEEK5 WEEK5 
+#Load json file into R 
+W5D1<-fromJSON(file="wk5discuss2018/2018-01-23.json")
+W5D2<-fromJSON(file="wk5discuss2018/2018-01-25.json")
+W5D3<-fromJSON(file="wk5discuss2018/2018-01-26.json")
+W5D4<-fromJSON(file="wk5discuss2018/2018-01-27.json")
+W5D5<-fromJSON(file="wk5discuss2018/2018-01-30.json")
+W5D6<-fromJSON(file="wk5discuss2018/2018-02-01.json")
+W5D7<-fromJSON(file="wk5discuss2018/2018-02-07.json")
+W5D8<-fromJSON(file="wk5discuss2018/2018-02-18.json")
+W5D9<-fromJSON(file="wk5discuss2018/2018-02-19.json")
+W5D10<-fromJSON(file="wk5discuss2018/2018-02-20.json")
+W5D11<-fromJSON(file="wk5discuss2018/2018-02-21.json")
+W5D12<-fromJSON(file="wk5discuss2018/2018-02-22.json")
+W5D13<-fromJSON(file="wk5discuss2018/2018-02-25.json")
+W5D14<-fromJSON(file="wk5discuss2018/2018-02-26.json")
+W5D15<-fromJSON(file="wk5discuss2018/2018-03-01.json")
+
+# Tranform list into data frame
+W5D1DF<-do.call("rbind.fill", lapply(W5D1, as.data.frame))
+W5D2DF<-do.call("rbind.fill", lapply(W5D2, as.data.frame))
+W5D3DF<-do.call("rbind.fill", lapply(W5D3, as.data.frame))
+W5D4DF<-do.call("rbind.fill", lapply(W5D4, as.data.frame))
+W5D5DF<-do.call("rbind.fill", lapply(W5D5, as.data.frame))
+W5D6DF<-do.call("rbind.fill", lapply(W5D6, as.data.frame))
+W5D7DF<-do.call("rbind.fill", lapply(W5D7, as.data.frame))
+W5D8DF<-do.call("rbind.fill", lapply(W5D8, as.data.frame))
+W5D9DF<-do.call("rbind.fill", lapply(W5D9, as.data.frame))
+W5D10DF<-do.call("rbind.fill", lapply(W5D10, as.data.frame))
+W5D11DF<-do.call("rbind.fill", lapply(W5D11, as.data.frame))
+W5D12DF<-do.call("rbind.fill", lapply(W5D12, as.data.frame))
+W5D13DF<-do.call("rbind.fill", lapply(W5D13, as.data.frame))
+W5D14DF<-do.call("rbind.fill", lapply(W5D14, as.data.frame))
+W5D15DF<-do.call("rbind.fill", lapply(W5D15, as.data.frame))
+
+#Combine the data frames into one
+Week5<-rbind.fill(W5D1DF,W5D2DF,W5D3DF,W5D4DF,W5D5DF,W5D6DF,W5D7DF,W5D8DF,W5D9DF,W5D10DF,W5D11DF,W5D12DF,W5D13DF,W5D14DF,W5D15DF)
+
+Week5Clean<-select(Week5, -(attachments.title:attachments.id),-unread_count, -(reactions.count:root.ts))
+                   
+#Converts the timestamp ts "factor" into numeric data
+Week5Clean$ts<-as.numeric(levels(Week5Clean$ts))[Week5Clean$ts]
+
+#Creates a new column timedate and adds it to the dataframe
+Week5Clean<-mutate(Week5Clean, timedate=as.POSIXct(ts, origin="1970-01-01"))
+
+#Filters the data frame and only keeps observations (rows) that have "N/A" in the subtype column.
+Week5Clean<-filter(Week5Clean, is.na(subtype))
+
+#Sorts messages by the time they were posted
+Week5Clean <- Week5Clean[order(Week5Clean$ts),] 
+
+#Add a unique key to each message
+Week5Clean$message <- 1:nrow(Week5Clean) 
+
+#Creates a new data frame just for messages 
+
+Week5Messages<-select(Week5Clean, message, timedate, user, text)
+
+# Recognize the post text as character data
+Week5Messages$text<-as.character(Week5Messages$text)
+
+#Check for duplicate data rows
+duplicated(Week5Clean)
+
+#Removes duplicate messages 
+Week5Clean<-Week5Clean[!duplicated(Week5Clean[,c(1,2,5)]),]
+
+###WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 EEK6 WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 WEEK6 
+
+#Load json file into R 
+W6D1<-fromJSON(file="wk6discuss2018/2018-02-22.json")
+W6D2<-fromJSON(file="wk6discuss2018/2018-02-27.json")
+W6D3<-fromJSON(file="wk6discuss2018/2018-02-28.json")
+W6D4<-fromJSON(file="wk6discuss2018/2018-03-01.json")
+W6D5<-fromJSON(file="wk6discuss2018/2018-03-03.json")
+
+
+# Tranform list into data frame
+W6D1DF<-do.call("rbind.fill", lapply(W6D1, as.data.frame))
+W6D2DF<-do.call("rbind.fill", lapply(W6D2, as.data.frame))
+
+W6D3DF <- ldply(W6D3, function(x) {
+   x[sapply(x, is.null)] <- NA
+   unlisted_x <- unlist(x)
+  d <- as.data.frame(unlisted_x)
+  d <- as.data.frame(t(d), check.names=F)
+  colnames(d) <- names(unlisted_x)
+  return(d)
+})
+
+W6D4DF<-do.call("rbind.fill", lapply(W6D4, as.data.frame))
+W6D5DF<-do.call("rbind.fill", lapply(W6D5, as.data.frame))
+
+## Combining the Data Sources
+Week6<-rbind.fill(W6D1DF,W6D2DF, W6D3DF, W6D4DF,W6D5DF)
+
+Week6Clean<-select(Week6,-inviter)
+                   
+
+#Converts the timestamp ts "factor" into numeric data
+Week6Clean$ts<-as.numeric(levels(Week6Clean$ts))[Week6Clean$ts]
+Week6Clean$edited.ts<-as.numeric(levels(Week6Clean$edited.ts))[Week6Clean$edited.ts]
+Week6Clean$thread_ts<-as.numeric(levels(Week6Clean$thread_ts))[Week6Clean$thread_ts]
+
+#Creates a new column timedate and adds it to the dataframe
+Week6Clean<-mutate(Week6Clean, timedate=as.POSIXct(ts, origin="1970-01-01"))
+Week6Clean<-mutate(Week6Clean, edited.timedate=as.POSIXct(edited.ts, origin="1970-01-01"))
+Week6Clean<-mutate(Week6Clean, thread.timedate=as.POSIXct(thread_ts, origin="1970-01-01"))
+
+#Filters the data frame and only keeps observations (rows) that have "N/A" in the subtype column.
+Week6Clean<-filter(Week6Clean, is.na(subtype))
+
+#Check for duplicate data rows
+duplicated(Week6Clean)
+
+#Removes duplicate messages 
+Week6Clean<-Week6Clean[!duplicated(Week6Clean[,c(1,2)]),]
+
+#Removes who reacted 
+Week6Clean<-select(Week6Clean, -(reactions.name:reactions.users))
+
+##Tidying the Data
+
+#Sorts messages by the time they were posted
+Week6Clean <- Week6Clean[order(Week6Clean$ts),] 
+
+#Add a unique key to each message
+Week6Clean$message <- 1:nrow(Week6Clean) 
+
+#Creates a new data frame just for messages 
+Week6Messages<-select(Week6Clean, type, timedate, user, text, reactions.count)
+
+# Recognize the post text as character data
+Week6Messages$text<-as.character(Week6Messages$text)
+
+# Count the number of characters in the text of each message and add a new column with this info
+Week6Messages<-mutate(Week6Messages, CharLength=nchar(text))
+
+
+###WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9 WEEK9
+
+#Load json file into R 
+W9D1<-fromJSON(file="wk9discuss2018/2018-01-25.json")
+W9D2<-fromJSON(file="wk9discuss2018/2018-02-01.json")
+W9D3<-fromJSON(file="wk9discuss2018/2018-03-07.json")
+W9D4<-fromJSON(file="wk9discuss2018/2018-03-20.json")
+W9D5<-fromJSON(file="wk9discuss2018/2018-03-21.json")
+W9D6<-fromJSON(file="wk9discuss2018/2018-03-22.json")
+
+# Tranform list into data frame and display it
+W9D1DF<-do.call("rbind.fill", lapply(W9D1, as.data.frame))
+W9D2DF<-do.call("rbind.fill", lapply(W9D2, as.data.frame))
+W9D3DF<-do.call("rbind.fill", lapply(W9D3, as.data.frame))
+W9D4DF<-do.call("rbind.fill", lapply(W9D4, as.data.frame))
+W9D5DF<-do.call("rbind.fill", lapply(W9D5, as.data.frame))
+W9D6DF<-do.call("rbind.fill", lapply(W9D6, as.data.frame))
+
+#Combine the data frames into one
+Week9<-rbind.fill(W9D1DF,W9D2DF,W9D3DF,W9D4DF,W9D5DF,W9D6DF)
+
+Week9Clean<-select(Week9, -unread_count)
+Week9Clean<-Week9Clean[-c(1:23),]
+                   
+#Converts the timestamp ts "factor" into numeric data
+Week9Clean$ts<-as.numeric(levels(Week9Clean$ts))[Week9Clean$ts]
+Week9Clean$edited.ts<-as.numeric(levels(Week9Clean$edited.ts))[Week9Clean$edited.ts]
+Week9Clean$thread_ts<-as.numeric(levels(Week9Clean$thread_ts))[Week9Clean$thread_ts]
+
+#Creates a new column timedate (based on the converted Unix timestamp) and adds it to the dataframe
+Week9Clean<-mutate(Week9Clean, timedate=as.POSIXct(ts, origin="1970-01-01"))
+Week9Clean<-mutate(Week9Clean, edited.timedate=as.POSIXct(edited.ts, origin="1970-01-01"))
+Week9Clean<-mutate(Week9Clean, thread.timedate=as.POSIXct(thread_ts, origin="1970-01-01"))
+
+#Filters the data frame and only keeps observations (rows) that have "N/A" in the subtype column.
+Week9Clean<-filter(Week9Clean, is.na(subtype))
+
+#Check for duplicate data rows
+duplicated(Week9Clean)
+
+#Removes who reacted 
+Week9Clean<-select(Week9Clean, -(reactions.name:reactions.users))
+
+##Tidying the Data  
+
+#Sorts messages by the time they were posted
+Week9Clean <- Week9Clean[order(Week9Clean$ts),] 
+
+#Add a unique key to each message
+Week9Clean$message <- 1:nrow(Week9Clean) 
+
+#Creates a new data frame just for messages 
+Week9Messages<-select(Week9Clean, message, timedate, user, text, reactions.count, reply_count)
+
+#Creates a new data frame just for edits
+Week9Edits<-filter(select(Week9Clean, edited.timedate, edited.user, message.edited=message), !is.na(edited.timedate))
+
+# Count the number of posts made grouped by user
+summarise(group_by(Week9Messages, user), NumberOfPosts = n ())
+
+# Tell R to recognize the post text as character data
+Week9Messages$text<-as.character(Week9Messages$text)
+
+# Count the number of characters in the text of each message and add a new column with this info
+Week9Messages<-mutate(Week9Messages, CharLength=nchar(text))
+
+```
+
+However, we encountered a problem with W6D3. Due to the nesting of the data, the list did not convert into a dataframe using the lines of code above. The error we encountered indicated different number of rows (1, 0). After much searching, we were able to find a code online on the Stack Overflow website (regarding a different topic but addressing this issue) which helped us finally put W6D3 into a dataframe. 
+```
+W6D3 Code:
+W6D3DF <- ldply(W6D3, function(x) {
+   x[sapply(x, is.null)] <- NA
+   unlisted_x <- unlist(x)
+  d <- as.data.frame(unlisted_x)
+  d <- as.data.frame(t(d), check.names=F)
+  colnames(d) <- names(unlisted_x)
+  return(d)
+})
+```
+Using W6D3, the function first removes any null elements and replaces them with NA. Next, the data is converted into a character vector. The vector is then converted into a dataframe and rows/columns are created for each element. After that, the rows and columns are transposed. Column names are then obtained from the original vector file. The final command “stacks” it all together. (refer to https://stackoverflow.com/questions/38514490/jsonlites-fromjson-is-returning-a-list-of-2-lists-instead-of-a-df) 
+
+Once the final dataframe was created, the data was inspected and we determined which columns (variables) we did not need in our analysis. In some of the channels, the data included when students joined the Slack channel. These rows were also dropped from the dataframe. 
+
+Since we were interested in when students were making posts and replies, the time tamps in the dataframe needed to be converted. The following lines were used for each week:
+
+```
+#Example Codes: 
+Week5Clean$ts<-as.numeric(levels(Week5Clean$ts))[Week5Clean$ts]
+Week5Clean$edited.ts<-as.numeric(levels(Week5Clean$edited.ts))[Week5Clean$edited.ts]
+Week5Clean$thread_ts<-as.numeric(levels(Week5Clean$thread_ts))[Week5Clean$thread_ts]
+# and 
+Week5Clean<-mutate(Week5Clean, timedate=as.POSIXct(ts, origin="1970-01-01"))
+Week5Clean<-mutate(Week5Clean, edited.timedate=as.POSIXct(edited.ts, origin="1970-01-01"))
+Week5Clean<-mutate(Week5Clean, thread.timedate=as.POSIXct(thread_ts, origin="1970-01-01"))
+```
+Finally, the dataframes for the weeks were checked for duplicate posts. All duplicates were removed for the final dataframe. 
+
+```
+#Example Code: 
+duplicated(Week5Clean)
+Week5Clean<-Week5Clean[!duplicated(Week5Clean[,c(1,2,5)]),]
+
+```
+
+#####Google Survey(CSV)
+
+The CSV was simpler to prepare. First, the CSV was converted to a easy-to-read format using the following: 
+
+ReadingData1<-read.csv("LADS-EDU Weekly Survey 2018 Responses Coded.csv")
+
+Since we were interested in looking at survey questions about time, certain variables were dropped from the dataframe. 
+
+```
+#Code: 
+
+ReadingData_edit<-(select(ReadingData1, -What.did.you.find.most.challenging.about.the.work.you.did.for.class.this.week.:-What.sources.of.information.about.analytics.did.you.interact.with.this.week..other.than.class.readings...assignments....if.applicable.))
+
+#With the remaining variables, the column names were renamed for convenience. 
+
+#Example Code:
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="What.week.are.you.entering.data.for."] <- "Week"
+
+#In order to make it easier to compare when students were submitting posts and the survey, the timestamp in the Survey data frame was changed to match the time structure in the Slack dataframes. 
+
+#Example Code: 
+
+ReadingData_edit$Timestamp<- as.POSIXct(ReadingData_edit$Timestamp,format="%m/%d/%Y%H:%M:%S")
+
+#Unlike in the Slack data were information was being presented by day and needed to be combined, the survey data presented all the data and needed to be separated. We created three subsets of the data, for weeks 5, 6, and 9. 
+
+#Example Code:
+
+ReadingData_Week5 <- ReadingData_edit[ which(ReadingData_edit$Week=="Wk 5 - Predictive Modelling 1"),] 
+
+```
+
+```{r}
+#convert CSV to readable file
+ReadingData1<-read.csv("LADS-EDU Weekly Survey 2018 Responses Coded.csv")
+#remove unwanted variables
+ReadingData_edit<-(select(ReadingData1, -How.would.you.describe..Reading.1...R1..this.week...Interesting.:-What.sources.of.information.about.analytics.did.you.interact.with.this.week..other.than.class.readings...assignments....if.applicable.))
+
+#rename columns
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="What.week.are.you.entering.data.for."] <- "Week"
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="When.did.you.get.started.on.your.work.for.class.this.week."] <- "Start Time"
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="How.did.you.distribute.your.work.for.this.week."] <- "Work Distribution"
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="How.did.you.organize.your.work.for.class.this.week."] <- "Work Organization"
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="What.did.you.find.most.challenging.about.the.work.you.did.for.class.this.week."] <- "Work Challenge"
+
+colnames(ReadingData_edit)[colnames(ReadingData_edit)=="Stu.ID"] <- "user"
+
+#change "Timestamp" format to match format from JSON files
+
+ReadingData_edit$Timestamp<- as.POSIXct(ReadingData_edit$Timestamp,format="%m/%d/%Y%H:%M:%S")
+
+#Subset data from survey
+
+ReadingData_Week5 <- ReadingData_edit[ which(ReadingData_edit$Week=="Wk 5 - Predictive Modelling 1"),] 
+
+ReadingData_Week6 <- ReadingData_edit[ which(ReadingData_edit$Week=="Wk 6 - Predictive Modelling 2"),] 
+
+ReadingData_Week9 <- ReadingData_edit[ which(ReadingData_edit$Week=="Wk 9 - Social Network Analysis 1"),]
+
+```
+
+####(2)Data Analysis
+
+To begin, we wanted to see when messages were being posted to Slack by the students each week. 
+
+
+```
+#Example Code:
+
+ggplot(data=Week5Clean, aes(Week5Clean$timedate)) + geom_histogram(bins="10", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count")
+
+```
+```{r}
+#week 5
+ggplot(data=Week5Clean, aes(Week5Clean$timedate)) + geom_histogram(bins="10", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count")
+
+#week6
+ggplot(data=Week6Clean, aes(Week6Clean$timedate)) + geom_histogram(bins="10", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count")
+
+#week 9
+ggplot(data=Week9Clean, aes(Week9Clean$timedate)) + geom_histogram(bins="10", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count")
+
+#visualize message count to time posted (visualize when students complete survey)
+
+Weeksall<-rbind.fill(Week5Clean,Week6Clean,Week9Clean)
+
+ggplot(data=Weeksall, aes(Weeksall$timedate)) + geom_histogram(bins="20", col="black", aes(fill=..count..)) +labs(title="Histogram of Message Count") +labs (x="Time", y="Count") 
+
+ggplot(data=ReadingData_Week9, aes(ReadingData_Week9$Timestamp)) + geom_histogram(bins="20", col="green", aes(fill=..count..)) +labs(title="Histogram") +labs (x="Time", y="Count")
+
+```
+Next, we compared student answers on time (“start time”, “work organization” and “work distribution”) to see how they self reported. 
+
+```
+#Example Code: *note: originally done as a histogram for the presentation but was changed to a scatterplot as it was easier to interpret)
+
+ggplot(ReadingData_Week9, aes(ReadingData_Week9$`Start Time`, ReadingData_Week9$`Work Distribution`))+ geom_point() + stat_sum(aes(group = 1))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+
+```{r}
+#Below: discover patterns of student answers in survey 
+
+ggplot(ReadingData_Week9, aes(ReadingData_Week9$`Start Time`, ReadingData_Week9$`Work Distribution`))+ geom_point() + stat_sum(aes(group = 1))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+ggplot(ReadingData_Week9, aes(ReadingData_Week9$`Work Distribution`, ReadingData_Week9$`Work Organization`))+ geom_point() + stat_sum(aes(group = 1))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+ggplot(ReadingData_Week9, aes(ReadingData_Week9$`Start Time`, ReadingData_Week9$`Work Organization`))+ geom_point() + stat_sum(aes(group = 1))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+```
+
+Based on student answers, we also looked at what they found challenging for the week to see if it there was a correlation to how students distributed work and when they started. 
+
+```
+#Example Code: 
+
+ReadingData_3weeks <- rbind.fill(ReadingData_Week5, ReadingData_Week6, ReadingData_Week9)
+
+ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$`Work Distribution`,ReadingData_3weeks$`Work Challenge`))+ geom_point() + stat_sum(aes(group = 1))
+
+```
+We also combined the post time from the Slack posts to the survey data to see if there was a correlation in time posted and the challenges the students faced. 
+
+```
+#Example Code:
+
+merge(ReadingData_Week9, Week9Clean[, c("user", "timedate")], by="user", all = TRUE)
+
+ReadingData_Week9$slacktimedate <- Week9Clean$timedate[match(ReadingData_Week9$user, Week9Clean$user)]
+
+g= ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$slacktimedate,ReadingData_3weeks$`Work Challenge`))+ geom_point() 
+g = g + scale_x_datetime(name = "Date", 
+                         breaks = date_breaks("2 days"),
+                         labels = date_format(format = "%b %d"),
+                         limits = c(as.POSIXct("2018-02-18 00:00:00"), as.POSIXct("2018-03-25                         00:00:00")),
+                         expand = c(0,0))
+g = g + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+
+```
+
+
+```{r}
+#Below: combine all 3 survey weeks 
+
+ReadingData_3weeks <- rbind.fill(ReadingData_Week5, ReadingData_Week6, ReadingData_Week9)
+
+ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$`Work Distribution`,ReadingData_3weeks$`Work Challenge`))+ geom_point() + stat_sum(aes(group = 1))
+
+#Below: compare what students found challenging and when they start their work
+
+ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$`Start Time`,ReadingData_3weeks$`Work Challenge`))+ geom_point() + stat_sum(aes(group = 1))
+
+#Below: combine timestamp in slack data to survey data
+
+merge(ReadingData_Week9, Week9Clean[, c("user", "timedate")], by="user", all = TRUE)
+
+ReadingData_Week9$slacktimedate <- Week9Clean$timedate[match(ReadingData_Week9$user, Week9Clean$user)]
+
+#BELOW: compare when students posted in slack and what they found challenging 
+
+g= ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$slacktimedate,ReadingData_3weeks$`Work Challenge`))+ geom_point() 
+g = g + scale_x_datetime(name = "Date", 
+                         breaks = date_breaks("2 days"),
+                         labels = date_format(format = "%b %d"),
+                         limits = c(as.POSIXct("2018-02-18 00:00:00"), as.POSIXct("2018-03-25                         00:00:00")),
+                         expand = c(0,0))
+g = g + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+plot(g)
+
+#BELOW: compare when students started to when they posted on slack 
+g= ggplot(ReadingData_3weeks, aes(ReadingData_3weeks$slacktimedate,ReadingData_3weeks$`Start Time`))+ geom_point() 
+g = g + scale_x_datetime(name = "Date", 
+                         breaks = date_breaks("2 days"),
+                         labels = date_format(format = "%b %d"),
+                         limits = c(as.POSIXct("2018-02-18 00:00:00"), as.POSIXct("2018-03-25                         00:00:00")),
+                         expand = c(0,0))
+g = g + theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+plot(g)
+
+```
+
+
+Length = 1-2 sentence annotation for each **chunk** of code (you do **not** need to explain every single line of code). **Do** make sure to interpret the meaning of each piece of output (e.g. table, graph, model).
+
+### 5. CONCLUSION: 
+1)The histograms/scatter plots show that most students answered survey questions honestly (they were aware of their actions and behavior) and they 1)Start late in the week across 2 to 3 days. 2) Complete tasks one at a time across 2 to 3 days. 3)Complete tasks one at a time late in the week（the camparison chart can be found in the presentation). It seems that student answers in the Google Survey partially reflect their post activity in Slack.
+2)We found that the weekly pattern of the histograms aligns with the progress of the class. We have observed declining amount of slack responses after week 6 (midterm week).
+
+No:
+1)Since our data sets is relatively tiny, the result/analysis may not be so accurate. 
+2)Tailored questions: Another possible alternative explanation we have observed is that the analysis could help design thoughtful survey questions. For example, since most students start late in week and many of them didn’t complete the tasks until the last day before class, it could be useful if we ask “How long time do you spend on your reading/R work” instead of “How did you distribute your work for this week?” Students can also asked what specific part of contributing to the Slack conversation was challenging for them. 
+
+
+### 6. REFLECTION
+When analyzing the data, we encountered difficulty with the W6D3 data. Since we did not have much data to use, it was important for us to have it working unless we wanted to change our question or ask for another week’s data. After researching online, we were able to incorporate W6D3 into the data frame.
+
+The project has provided us an opportunity to analyze the trends of student performance and behavior with Slack and Google surveys. Most students eventually spent less time on finishing the assignment which shows potential improvement of their knowledge base. We would like to collect more data over time such as Slack “tech help”  and each individual’s “R assignment submission time” to keep analyzing and eventually improve the workflow of learning and understanding of R. Some students found understanding the reading concepts as challenging. It would be interesting to see if the discussion activity would change if future readings were changed. 
+
+
